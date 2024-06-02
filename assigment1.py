@@ -71,12 +71,13 @@ def get_time(time_code):
         q = 'q4'
 
 
-    d = {'day': day,
-        'day_of_week': day_of_week,
+    d = {'date': str(year)+'-'+str(month)+'-'+str(day), 
+        'day': str(day),
+        'day_of_week': day_of_week, 
         'week': week,
-        'month': month,
+        'month': str(month),
         'quarter': q,
-        'year' : year}
+        'year' : str(year)}
     
     return d
 
@@ -101,10 +102,12 @@ def make_time(input_file, output_file, time_attributes):
             
             unique_times.add(row['time_code'])
             
+        i=0
         for time_code in unique_times:  
             d = get_time(time_code)
-
+            d['time_id'] = i 
             writer.writerow(d)
+            i+=1
 
 
 def make_fact(input_file, fact_file, fact_attributes):
@@ -147,16 +150,22 @@ def make_dim(input_file, output_file, attributes):
 
         reader = csv.DictReader(file)
         writer = csv.writer(out)
+        id_to_add = input_file.split('.')[0].lower()+'_id'
+        writer.writerow([id_to_add] + attributes)
 
-        writer.writerow(attributes)
+        unique_rows_no_id = set()
+        unique_rows_with_id = set()
 
-        unique_rows = set()
-
+        i=0
         for row in reader:
-            filtered_row = tuple(row[attr] for attr in attributes)
-            unique_rows.add(filtered_row)
+            filtered_row = [row[attr] for attr in attributes]
+            if filtered_row not in unique_rows_no_id:
+                filtered_row.insert(0, i)
+                unique_rows_with_id.add(filtered_row)
+                i+=1
 
-        for row in unique_rows:
+
+        for row in unique_rows_with_id:
             writer.writerow(row)
 
 
@@ -166,12 +175,12 @@ if __name__ == '__main__':
     ram_attr = ['ram_vendor_name', 'ram_brand', 'ram_name', 'ram_size', 'ram_type', 'ram_clock']
     fact_attr = ['ram_sales', 'ram_sales_usd', 'cpu_sales', 'cpu_sales_usd', 'gpu_sales', 'gpu_sales_usd', 'total_sales', 'total_sales_usd']
     geo_attr = ['geo_id', 'country', 'region', 'continent', 'currency']
-    time_attr = ['day','day_of_week','week', 'month','quarter', 'year']
+    time_attr = ['time_id', 'date', 'day','day_of_week','week', 'month','quarter', 'year']
     cpu_attr = ['cpu_vendor_name', 'cpu_brand', 'cpu_series', 'cpu_name', 'cpu_n_cores', 'cpu_socket']
     gpu_attr = ['gpu_vendor_name', 'gpu_brand', 'gpu_processor_manufacturer', 'gpu_memory', 'gpu_memory_type']
 
     make_fact('computer_sales.csv', 'fact.csv', fact_attr)
-    make_time('computer_sales.csv', 'Time.csv', time_attr)
+    make_time('computer_sales.csv', 'Time_with_id.csv', time_attr)
     make_geo('computer_sales.csv', 'geography.csv', 'Geo.csv', geo_attr )
     make_dim('computer_sales.csv', 'Cpu.csv', cpu_attr)
     make_dim('computer_sales.csv', 'Gpu.csv', gpu_attr)
