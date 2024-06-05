@@ -34,7 +34,7 @@ if __name__ == "__main__":
     database = 'Group_ID_781_DB'
     username = 'Group_ID_781'
     password = '3YJD1IYAE'
-    connection_string = 'DRIVER={SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+password
+    connection_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+password
     
     # loading data and populating all the tables
     try: 
